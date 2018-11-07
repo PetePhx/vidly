@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
+const Fawn = require('fawn');
 const { Rental, validate } = require('../models/rental');
 const { Customer } = require('../models/customer');
 const { Movie } = require('../models/movie');
+
+Fawn.init(mongoose);
 
 router.get('/', async (req, res) => {
   const rentals = await Rental.find().sort('-dateOut');
@@ -16,7 +20,7 @@ router.post('/', async (req, res) => {
   const customer = await Customer.findById(req.body.customerId);
   const movie = await Movie.findById(req.body.movieId);
   if (!customer || !movie) 
-    return res.status(400).send('invalid id for ' + customer ? 'movie' : 'customer');
+    return res.status(400).send('invalid id for ' + (customer ? 'movie' : 'customer'));
 
   if (movie.numberInStock === 0) return res.status(400).send('Movie not in stock.');
 
@@ -32,10 +36,29 @@ router.post('/', async (req, res) => {
       dailyRentalRate: movie.dailyRentalRate,
     }
   });
-  rental = await rental.save();
 
-  movie.numberInStock -= 1;
-  movie.save();
+  // non-transaction:
+  // rental = await rental.save();
+  // movie.numberInStock -= 1;
+  // movie.save();
+  
+  try {
+    new Fawn.Task()
+      .save('rentals', rental)
+      .update('movies', { _id: movie._id }, { $inc: { numberInStock: -1 } })
+      .run();
+    
+    res.send(rental);
+  }
+  catch (exc) {
+    res.status(500).send('Somthing went wrong.');
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  const rental = await Rental.findByIdAndDelete(req.params.id);
+
+  if (!rental) return res.status(404).send('The rental with the given ID was not found.');
 
   res.send(rental);
 });
@@ -46,6 +69,6 @@ router.get('/:id', async (req, res) => {
   if (!rental) return res.status(404).send('The rental with the given ID was not found.');
 
   res.send(rental);
-});
+});  
 
 module.exports = router;
