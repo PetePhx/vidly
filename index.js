@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const config = require('config');
-// const winston = require('winston');
+const winston = require('winston');
+require('winston-mongodb');
 
 const genres = require('./routes/genres');
 const customers = require('./routes/customers');
@@ -15,7 +16,20 @@ const users = require('./routes/users');
 const auth = require('./routes/auth');
 const error = require('./middleware/error');
 
-// winston.add(winston.transports.File, { filename: 'logfile.log' });
+const logger = winston.createLogger({
+  level: 'error',
+  format: winston.format.json(),
+  transports: new winston.transports.MongoDB(
+    { db: 'mongodb://localhost/vidly', level: 'error', options: { useNewUrlParser: true } }
+  )
+});
+
+process.on('uncaughtException', (exc) => {
+  console.log('Uncaught Exception');
+  logger.log('error', exc.message, exc);
+});
+
+// throw new Error('Oh nose!');
 
 if (!config.get('jwtPrivateKey')) {
   console.error('FATAL ERROR: "jwtPrivateKey" is not set.');
