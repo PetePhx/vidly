@@ -19,17 +19,22 @@ const error = require('./middleware/error');
 const logger = winston.createLogger({
   level: 'error',
   format: winston.format.json(),
-  transports: new winston.transports.MongoDB(
-    { db: 'mongodb://localhost/vidly', level: 'error', options: { useNewUrlParser: true } }
-  )
+  transports: [
+    new winston.transports.MongoDB({ db: 'mongodb://localhost/vidly', options: { useNewUrlParser: true } }),
+    new winston.transports.File({ filename: 'errors.log' })
+  ],
+  exceptionHandlers: new winston.transports.File({ filename: 'exceptions.log' }),
 });
 
-process.on('uncaughtException', (exc) => {
-  console.log('Uncaught Exception');
-  logger.log('error', exc.message, exc);
-});
+// process.on('uncaughtException', (exc) => {
+//   logger.log('error', exc.message);
+//   process.exit(1);
+// });
 
-// throw new Error('Oh nose!');
+// process.on('unhandledRejection', (exc) => { throw exc; });
+
+// setTimeout(() => { throw new Error('Oh nose!') }, 500);
+
 
 if (!config.get('jwtPrivateKey')) {
   console.error('FATAL ERROR: "jwtPrivateKey" is not set.');
