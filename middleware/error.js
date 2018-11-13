@@ -7,7 +7,8 @@ const logger = createLogger({
   transports: [
     new transports.File({ filename: 'errors.log', level: 'error' }),
     new transports.File({ filename: 'combined.log' }),
-  ]
+  ],
+  exitOnError: true,
 });
 
 logger.add(new transports.MongoDB(
@@ -22,4 +23,6 @@ module.exports = function (err, req, res, next) {
   logger.log('error', err.message);
   
   res.status(500).send('something failed.');
+
+  process.exit(1);
 }
