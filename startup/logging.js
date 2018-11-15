@@ -1,18 +1,26 @@
 require('express-async-errors');
-const winston = require('winston');
+const { createLogger, format, transports } = require('winston');
 require('winston-mongodb');
 
-const unhandledExcLogger = winston.createLogger({
+const unhandledExcLogger = createLogger({
   level: 'error',
-  exceptionHandlers: new winston.transports.File({ filename: 'exceptions.log' }),
+  exceptionHandlers: [ 
+    new transports.File({ filename: 'exceptions.log' }),
+  ],
 });
 
-const logger = winston.createLogger({
+// if (process.env.NODE_ENV !== 'production') {
+  // unhandledExcLogger.add(new transports.Console({ 
+  //   format: format.cli(),
+  // }));
+// }
+
+const logger = createLogger({
   level: 'error',
-  format: winston.format.json(),
+  format: format.json(),
   transports: [
-    new winston.transports.MongoDB({ db: 'mongodb://localhost/vidly', options: { useNewUrlParser: true } }),
-    new winston.transports.File({ filename: 'errors.log' })
+    new transports.MongoDB({ db: 'mongodb://localhost/vidly', options: { useNewUrlParser: true } }),
+    new transports.File({ filename: 'errors.log' })
   ],
 });
 

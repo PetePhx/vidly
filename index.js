@@ -3,10 +3,10 @@ const app = express();
 const { createLogger, format, transports } = require('winston');
 
 require('./startup/logging');
-require('./startup/routes.js')(app);
 require('./startup/db')();
 require('./startup/config')();
 require('./startup/validation')();
+require('./startup/routes.js')(app);
 
 process.on('unhandledRejection', (exc) => { throw(exc) });
 
