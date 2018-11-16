@@ -7,7 +7,7 @@ describe('/api/genres', () => {
   beforeEach(() => {
     server = require('../../index');
   });
-  
+
   afterEach(async () => {
     server.close();
     await Genre.deleteMany({});
@@ -42,6 +42,13 @@ describe('/api/genres', () => {
       const response = await request(server).get('/api/genres/123456');
       expect(response.status).toBe(404);
       expect(response.text).toMatch(/invalid id/i);
+    });
+    
+    it('should return 404 if genre with a given id does not exit', async () => {
+      const id = new Genre()._id;
+      const response = await request(server).get(`/api/genres/${id}`);
+      expect(response.status).toBe(404);
+      expect(response.text).toMatch(/not found/i);
     });
   });
 
@@ -88,7 +95,6 @@ describe('/api/genres', () => {
     });
 
     it('should save genre for a valid genre', async () => {
-      
       const response = await exec();
       const genre = await Genre.find({ name: name });
 
@@ -97,7 +103,6 @@ describe('/api/genres', () => {
     });
 
     it('should return genre for a valid genre', async () => {
-      
       const response = await exec();
 
       expect(response.status).toBe(200);
