@@ -24,5 +24,5 @@ module.exports = function (err, req, res, next) {
   
   res.status(500).send('something failed.');
 
-  process.exit(1);
+  // process.exit(1);
 }

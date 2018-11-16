@@ -11,7 +11,9 @@ require('./startup/routes.js')(app);
 process.on('unhandledRejection', (exc) => { throw(exc) });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   createLogger({ transports: new transports.Console(), format: format.cli() })
     .info(`Listening on port ${port}...`)
 });
+
+module.exports = server;
