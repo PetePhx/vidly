@@ -12,7 +12,7 @@ describe('Auth /api/genres', () => {
   
   afterEach(async () => {
     await Genre.deleteMany({});
-    server.close();
+    await server.close();
   });
 
   const exec = async () => {

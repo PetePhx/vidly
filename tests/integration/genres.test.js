@@ -9,8 +9,8 @@ describe('/api/genres', () => {
   });
 
   afterEach(async () => {
-    server.close();
     await Genre.deleteMany({});
+    await server.close();
   });
 
   describe('GET /', () => {
@@ -203,8 +203,7 @@ describe('/api/genres', () => {
     }
 
     beforeEach(async () => {
-      // Before each test we need to create a genre and 
-      // put it in the database.      
+      // create a genre and save in DB    
       genre = new Genre({ name: 'genre1' });
       await genre.save();
       
@@ -229,7 +228,7 @@ describe('/api/genres', () => {
     });
 
     it('should return 404 if id is invalid', async () => {
-      id = 1; 
+      id = '1'; 
       
       const res = await exec();
 
