@@ -1,12 +1,15 @@
 const request = require('supertest');
 const { Rental } = require('../../models/rental');
+const { Movie } = require('../../models/movie');
 const { User } = require('../../models/user');
 const mongoose = require('mongoose');
+const moment = require('moment');
 
 describe('/api/returns', () => {
   let server;
   let customerId;
   let movieId;
+  let movie;
   let rental;
   let token;
 
@@ -26,9 +29,20 @@ describe('/api/returns', () => {
         _id: movieId,
         title: '12345',
         dailyRentalRate: 2,
+        numberInStock: 10,
+        genre: { name: '12345'},
       },
     });
     await rental.save();
+
+    movie = new Movie({
+      _id: movieId,
+      title: '12345',
+      dailyRentalRate: 2,
+      numberInStock: 10,
+      genre: { name: '12345'},
+    });
+    await movie.save();
   });
 
   const exec = () => {
@@ -40,6 +54,7 @@ describe('/api/returns', () => {
   
   afterEach(async () => {
     await Rental.deleteMany({});
+    await Movie.deleteMany({});
     await server.close();
   });
 
@@ -89,5 +104,32 @@ describe('/api/returns', () => {
     const response = await exec();
 
     expect(response.status).toBe(200);
+  });
+
+  it('should set the return date for a valid return', async () => {
+    const response = await exec();
+
+    const rentalInDB = await Rental.findOne({ _id: rental._id });
+    const diff = Date.now() - rentalInDB.dateReturned; // in milisec
+
+    expect(diff).toBeLessThan(10 * 1000); // 10 sec
+  });
+
+  it('should set the rental fee for a valid return', async () => {
+    rental.dateOut = moment().add(-7, 'days').toDate();
+    await rental.save();    
+    await exec();
+
+    const rentalInDb = await Rental.findOne({ _id: rental._id });
+
+    expect(rentalInDb.rentalFee).toBe(14);
+  });
+  
+  it('should increase the movie in stock after a valid return', async () => {
+    await exec();
+
+    const movieInDb = await Movie.findOne({ _id: movieId });
+
+    expect(movieInDb.numberInStock).toBe(movie.numberInStock + 1);
   });
 });
