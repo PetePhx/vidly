@@ -132,4 +132,14 @@ describe('/api/returns', () => {
 
     expect(movieInDb.numberInStock).toBe(movie.numberInStock + 1);
   });
+
+  it('should return the rental in the body of the response', async () => {
+    const response = await exec();
+
+    const rentalInDb = await Rental.findOne({ _id: rental._id });
+
+    ['dateOut', 'dateReturned', 'rentalFee', 'customer', 'movie'].forEach(prop => {
+      expect(rentalInDb).toHaveProperty(prop);
+    });
+  });
 });
