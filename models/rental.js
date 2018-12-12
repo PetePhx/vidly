@@ -1,9 +1,9 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
-const moment = require('moment');
+const Joi = require("joi");
+const mongoose = require("mongoose");
+const moment = require("moment");
 
 const rentalSchema = new mongoose.Schema({
-  customer: { 
+  customer: {
     type: new mongoose.Schema({
       name: {
         type: String,
@@ -20,8 +20,8 @@ const rentalSchema = new mongoose.Schema({
         required: true,
         minlength: 5,
         maxlength: 50
-      }      
-    }),  
+      }
+    }),
     required: true
   },
   movie: {
@@ -29,53 +29,53 @@ const rentalSchema = new mongoose.Schema({
       title: {
         type: String,
         required: true,
-        trim: true, 
+        trim: true,
         minlength: 5,
         maxlength: 255
       },
       dailyRentalRate: {
-        type: Number, 
+        type: Number,
         required: true,
         min: 0,
         max: 255
-      }   
+      }
     }),
     required: true
   },
   dateOut: {
-    type: Date, 
+    type: Date,
     required: true,
     default: Date.now
   },
-  dateReturned: { 
+  dateReturned: {
     type: Date
   },
-  rentalFee: { 
-    type: Number, 
+  rentalFee: {
+    type: Number,
     min: 0
   }
 });
 
-rentalSchema.statics.lookup = function (customerId, movieId) {
-  return this.findOne({ 
-    'customer._id': customerId,
-    'movie._id': movieId,
+rentalSchema.statics.lookup = function(customerId, movieId) {
+  return this.findOne({
+    "customer._id": customerId,
+    "movie._id": movieId
   });
 };
 
-rentalSchema.methods.returnIt = function () {
+rentalSchema.methods.returnIt = function() {
   this.dateReturned = new Date();
 
-  const days = moment().diff(this.dateOut, 'days');
+  const days = moment().diff(this.dateOut, "days");
   this.rentalFee = this.movie.dailyRentalRate * days;
 };
 
-const Rental = mongoose.model('Rental', rentalSchema);
+const Rental = mongoose.model("Rental", rentalSchema);
 
 function validateRental(rental) {
   const schema = {
     movieId: Joi.objectId().required(),
-    customerId: Joi.objectId().required(),
+    customerId: Joi.objectId().required()
   };
   return Joi.validate(rental, schema);
 }
